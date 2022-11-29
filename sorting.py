@@ -1,3 +1,4 @@
+from datetime import date
 def initializeSort(df, similarMovies, typeToSort):
     listToSort = []
     key = {'Rating' : 'vote_average', 'Release Date' : 'release_date', 'Popularity' : 'popularity', 'Runtime' : 'runtime'}
@@ -6,23 +7,122 @@ def initializeSort(df, similarMovies, typeToSort):
     for item in sim_scores:
         index = item[0]
         similarityValue = item[1][0]
-        if (typeToSort == 'Most Similar'):
+        if typeToSort == 'Most Similar':
             listToSort.append([index, similarityValue])
+        elif typeToSort == 'Release Date':
+            sortValue = list(df.loc[df["index"] == index][key[typeToSort]])[0]
+            listToSort.append([index, convert_date(sortValue)])
         else:
             sortValue = list(df.loc[df["index"] == index][key[typeToSort]])[0]
-            listToSort.append([index, similarityValue, sortValue])
+            listToSort.append([index, sortValue])
     return listToSort
 
-def quickSort(listToSort, typeToSort):
-    sortedList = []
-    #sort the third (2nd index) elements of listToSort (a list of lists), which is either rating, release date, popularity, or runtime
-    #I think you're going to have to do a separate case for release date because I think its like YYYY-MM-DD (not a number)
-    return sortedList
+def convert_date (date_to_convert):
+    dateDict = {
+        0: 0,# Years
+        1: 0,# Months
+        2: 0 # Days
+    }
+    count = 0
+    string_to_convert = ""
+    # Break apart the time stamp into components
+    for i, char in enumerate(date_to_convert):
+        if char == "-":
+            dateDict[count] = int(string_to_convert)
+            string_to_convert = ""
+            count += 1
+        elif i == len(date_to_convert)-1:
+            string_to_convert += char
+            dateDict[count] = int(string_to_convert)
+        else:
+            string_to_convert += char
+    # use datetime library to figure out how many days after the year of the first movie ever made
+    d1 = date(dateDict[0], dateDict[1], dateDict[2])
+    d0 = date(1888, 1, 1) # date of the first movie ever made
+    delta = d1 - d0
+    return delta.days
 
-def mergeSort(listToSort, typeToSort):
-    sortedList = []
-    return sortedList
+
+"""
+Quick Sort function and helpers 
+"""
 
 
+def quickSort(listToSort, end, start=0):
+    if start < end:
+        pivot = sort(listToSort, start, end)
+        quickSort(listToSort, pivot - 1, start)
+        quickSort(listToSort, end, pivot + 1)
+    return listToSort
 
 
+def sort(listToSort, start, end):
+    pivot = listToSort[end]
+
+    element_pointer = start - 1
+
+    for index in range(start, end):
+        if listToSort[index][1] >= pivot[1]:
+            element_pointer = element_pointer + 1
+
+            (listToSort[element_pointer], listToSort[index]) = (listToSort[index], listToSort[element_pointer])
+    (listToSort[element_pointer+1], listToSort[end]) = (listToSort[end], listToSort[element_pointer + 1])
+
+    return element_pointer + 1
+
+
+"""
+Merge Sort Function and helpers  
+"""
+
+
+def mergeSort(listToSort, end, start=0):
+    if start < end:
+        mid = start + (end - start)//2
+        mergeSort(listToSort, mid, start)
+        mergeSort(listToSort, end, mid+1)
+        merge(listToSort, start, mid, end)
+    return listToSort
+
+
+def merge(listToSort, start, mid, end):
+    temp_size1 = mid - start + 1
+    temp_size2 = end - mid
+
+    # Temp Array1
+    temp_array1 = [0] * temp_size1
+    for index1 in range(0, temp_size1):
+        temp_array1[index1] = listToSort[start + index1]
+
+    # Temp Array2
+    temp_array2 = [0] * temp_size2
+    for index2 in range(0, temp_size2):
+        temp_array2[index2] = listToSort[mid + 1 + index2]
+
+    index1 = 0
+    index2 = 0
+    merged_index = start
+
+    while index1 < temp_size1 and index2 < temp_size2:
+        if temp_array1[index1][1] >= temp_array2[index2][1]:
+            listToSort[merged_index] = temp_array1[index1]
+            index1 = index1 + 1
+        else:
+            listToSort[merged_index] = temp_array2[index2]
+            index2 = index2 + 1
+        merged_index = merged_index + 1
+
+    while index1 < temp_size1:
+        listToSort[merged_index] = temp_array1[index1]
+        index1 = index1 + 1
+        merged_index = merged_index + 1
+
+    while index2 < temp_size2:
+        listToSort[merged_index] = temp_array2[index2]
+        index2 = index2 + 1
+        merged_index = merged_index + 1
+    return listToSort
+
+#finalSortedMovies = quickSort(sim_scores, end=len(sim_scores)-1)
+#finalSortedMovies = mergeSort(sim_scores, end=len(sim_scores)-1)
+#print(finalSortedMovies)
