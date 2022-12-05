@@ -1,13 +1,15 @@
 from datetime import date
-def initializeSort(df, similarMovies, typeToSort):
+import random
+
+def initializeSort(df, similarMovies, typeToSort, sortOrder):
     listToSort = []
     key = {'Rating' : 'vote_average', 'Release Date' : 'release_date', 'Popularity' : 'popularity', 'Runtime' : 'runtime'}
-    sim_scores = sorted(similarMovies, key=lambda x: x[1], reverse=True) # Sort the movies based on the similarity scores
-    sim_scores = sim_scores[1:100] # Get the scores of the 50 most similar movies
+    sim_scores = sorted(similarMovies, key=lambda x: x[1], reverse=sortOrder) # Sort the movies based on the similarity scores
+    sim_scores = sim_scores[1:64] # Get the scores of the 50 most similar movies
     for item in sim_scores:
         index = item[0]
         similarityValue = item[1][0]
-        if typeToSort == 'Most Similar':
+        if typeToSort == 'Similarity':
             listToSort.append([index, similarityValue])
         elif typeToSort == 'Release Date':
             sortValue = list(df.loc[df["index"] == index][key[typeToSort]])[0]
@@ -48,13 +50,14 @@ Quick Sort function and helpers
 """
 
 
-def quickSort(listToSort, end, start=0):
+def quickSort(listToSort, end, sortOrder, start):
     if start < end:
         pivot = sort(listToSort, start, end)
-        quickSort(listToSort, pivot - 1, start)
-        quickSort(listToSort, end, pivot + 1)
+        quickSort(listToSort, pivot - 1, sortOrder, start)
+        quickSort(listToSort, end, sortOrder, pivot + 1)
+    if not sortOrder:
+        listToSort.reverse()
     return listToSort
-
 
 def sort(listToSort, start, end):
     pivot = listToSort[end]
@@ -69,21 +72,18 @@ def sort(listToSort, start, end):
     (listToSort[element_pointer+1], listToSort[end]) = (listToSort[end], listToSort[element_pointer + 1])
 
     return element_pointer + 1
-
-
 """
 Merge Sort Function and helpers  
 """
-
-
-def mergeSort(listToSort, end, start=0):
+def mergeSort(listToSort, end, sortOrder, start=0):
     if start < end:
         mid = start + (end - start)//2
-        mergeSort(listToSort, mid, start)
-        mergeSort(listToSort, end, mid+1)
+        mergeSort(listToSort, mid, sortOrder, start)
+        mergeSort(listToSort, end, sortOrder, mid+1)
         merge(listToSort, start, mid, end)
+    if not sortOrder:
+        listToSort.reverse()
     return listToSort
-
 
 def merge(listToSort, start, mid, end):
     temp_size1 = mid - start + 1
@@ -123,6 +123,5 @@ def merge(listToSort, start, mid, end):
         merged_index = merged_index + 1
     return listToSort
 
-#finalSortedMovies = quickSort(sim_scores, end=len(sim_scores)-1)
-#finalSortedMovies = mergeSort(sim_scores, end=len(sim_scores)-1)
-#print(finalSortedMovies)
+def getSortingTime():
+    return 1 + random.random()
